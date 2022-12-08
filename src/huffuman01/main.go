@@ -65,8 +65,6 @@ func CountChar(s string) *HuffumanFlag {
 			h[r[i]] = c
 		} else {
 			c.Flag++
-			lock := new(sync.Mutex)
-			lock.Lock()
 			if c.Prev != nil && c.Flag > c.Prev.Flag {
 				c.Prev.Next = c.Next
 				if c.Next == nil {
@@ -86,6 +84,8 @@ func CountChar(s string) *HuffumanFlag {
 			} else {
 				continue
 			}
+			lock := new(sync.Mutex)
+			lock.Lock()
 			for {
 				if c.Flag > c.Prev.Flag {
 					if c.Prev.Prev == nil {
