@@ -19,12 +19,15 @@ var (
 	clientMap = make(map[string]net.Conn)
 )
 
+func closeConn(conn net.Conn) {
+	if conn != nil {
+		clientMap[conn.RemoteAddr().String()] = nil
+		conn.Close()
+	}
+}
+
 func read(conn net.Conn) {
-	defer (func() {
-		if conn != nil {
-			defer conn.Close()
-		}
-	})()
+	defer closeConn(conn)
 	for {
 		if conn == nil {
 			return
@@ -40,17 +43,30 @@ func read(conn net.Conn) {
 	}
 }
 
+func writeIndex(conn net.Conn) {
+	s := []string{
+		"HTTP/1.1 200 OK\r\n",
+		"Content-Type:application/json\r\n",
+		"Content-Length:20\r\n\r\n",
+		`{"name":"zs","age":18}`,
+	}
+	var p string
+	for _, v := range s {
+		p = p + v
+	}
+	conn.Write([]byte(p))
+}
+
 func write(conn net.Conn) {
-	defer (func() {
-		if conn != nil {
-			defer conn.Close()
-		}
-	})()
+	defer closeConn(conn)
 	for {
 		inputReader := bufio.NewReader(os.Stdin)
 		s, _ := inputReader.ReadString('\n')
 		t := strings.Trim(s, "\r\n")
-		if "Q" == t {
+		if "q" == t {
+			return
+		} else if "w" == t {
+			writeIndex(conn)
 			return
 		}
 		conn.Write([]byte(t))
